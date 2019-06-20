@@ -51,12 +51,7 @@ num_cols   = [x for x in data.columns if x not in cat_cols + target_col]
 
 # DATA E X P L O R A T I O N
 
-#Index(['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure',
-#      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
-#      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
-#       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
-#       'MonthlyCharges', 'TotalCharges', 'Churn', 'tenure_bin'],
-#      dtype='object')
+
 
 tenure_freq = data["tenure_bin"].value_counts()
 churn_freq = data["Churn"].value_counts()
@@ -86,28 +81,75 @@ sns.violinplot(x="InternetService", y="MonthlyCharges", hue="Churn",
                     data=data, palette="muted", ax = ax[1])
 
 #### VIZ categorical variable
+# 6 binary features
+# 9 features w 3 levels
+#1 w 4 levels
+
+#Index(['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure',
+#      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
+#      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
+#       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
+#       'MonthlyCharges', 'TotalCharges', 'Churn', 'tenure_bin'],
+#      dtype='object')
+
+ax = (data['SeniorCitizen'].value_counts()*100.0 /len(data))\
+.plot.pie(autopct='%.1f%%', labels = ['No', 'Yes'],figsize =(5,5), fontsize = 12 )                                                                           
+ax.set_ylabel('Senior Citizens',fontsize = 12)
+ax.set_title('% of Senior Citizens', fontsize = 12)
+
+#senior and gender
+sns.countplot(x="gender", data=data, hue="Churn")
+
+sns.countplot(x="SeniorCitizen", data=data, hue="Churn")
+
+g = sns.FacetGrid(data, row='SeniorCitizen', col="gender", hue="Churn", height=3.5)
+g.map(plt.scatter, "tenure", "MonthlyCharges", alpha=0.6)
+g.add_legend();
+
+#partner and dependent
+sns.countplot(x="Partner", data=data, hue="Churn")
+sns.countplot(x="Dependents", data=data, hue="Churn")
+
+# Phone and Internet Services
+sns.countplot(x="PhoneService", data=data, hue="Churn")
+
+sns.countplot(x="MultipleLines", data=data, hue="Churn")
+
+sns.violinplot(x="MultipleLines", y="MonthlyCharges", hue="Churn",
+                    data=data, palette="muted")
+
+sns.countplot(x="InternetService", data=data, hue="Churn")
+
+sns.violinplot(x="InternetService", y="MonthlyCharges", hue="Churn",
+                    data=data, palette="muted")
+
+# 6 other features
+
+col6 = ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV", "StreamingMovies"]
+data1 = pd.melt(data[data["InternetService"] != "No"][col6]).rename({'value': 'Has service'}, axis=1)
+plt.figure(figsize=(10, 4.5))
+ax = sns.countplot(data=data1, x='variable', hue='Has service')
+ax.set(xlabel='Additional service', ylabel='Num of customers')
+plt.show()
+
+plt.figure(figsize=(10, 4.5))
+df1 = data[(data.InternetService != "No") & (data.Churn == "Yes")]
+df1 = pd.melt(df1[col6]).rename({'value': 'Has service'}, axis=1)
+ax = sns.countplot(data=df1, x='variable', hue='Has service', hue_order=['No', 'Yes'])
+ax.set(xlabel='Additional service', ylabel='Num of churns')
+plt.show()
+
+# paperless billing and payment
+sns.violinplot(x="PaperlessBilling", y="MonthlyCharges", hue="Churn",
+                    data=data, palette="muted")
+sns.countplot(x="PaperlessBilling", data=data, hue="Churn")
 
 
+plt.figure(figsize=(10, 4.5))
+sns.countplot(x="PaymentMethod", data=data, hue="Churn")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#tenure_bin
+sns.countplot(x="tenure_bin", data=data, hue="Churn")
 
 
 
