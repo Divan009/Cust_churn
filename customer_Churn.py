@@ -3,6 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import warnings
+from sklearn.preprocessing import MinMaxScaler
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
 warnings.filterwarnings("ignore")
 sns.set(style="whitegrid")
 
@@ -30,15 +36,15 @@ data.dropna(inplace = True)
 data.drop(['customerID'], axis = 1, inplace = True)
 
 #Convert Senior Citizen into object, by replacing it with Y or N
-data['SeniorCitizen'] = data['SeniorCitizen'].replace({1:"Yes", 0:"No"})
-
+data["Churn"] = data["Churn"].replace({"Yes":1,"No":0})
 #We can bin the tenure
 bins = [0,12,24,36,48,60,74]
 labels = ['1yr','2yr','3yr','4yr','5yr','6yr']
 data['tenure_bin'] = pd.cut(data['tenure'], bins=bins, labels=labels)
 
-print(data['tenure_bin'], data['tenure'])
 data['tenure_bin'] = data['tenure_bin'].astype(object)
+data['SeniorCitizen'] = data['SeniorCitizen'].astype(object)
+data['Churn'] = data['Churn'].astype(object)
 
 #data.drop(['tenure'], axis = 1, inplace = True)
 #Separating categorical and numerical cols
@@ -84,13 +90,6 @@ sns.violinplot(x="InternetService", y="MonthlyCharges", hue="Churn",
 # 6 binary features
 # 9 features w 3 levels
 #1 w 4 levels
-
-#Index(['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure',
-#      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
-#      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
-#       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
-#       'MonthlyCharges', 'TotalCharges', 'Churn', 'tenure_bin'],
-#      dtype='object')
 
 ax = (data['SeniorCitizen'].value_counts()*100.0 /len(data))\
 .plot.pie(autopct='%.1f%%', labels = ['No', 'Yes'],figsize =(5,5), fontsize = 12 )                                                                           
@@ -150,6 +149,97 @@ sns.countplot(x="PaymentMethod", data=data, hue="Churn")
 
 #tenure_bin
 sns.countplot(x="tenure_bin", data=data, hue="Churn")
+
+#########################################
+# 'tenure','MonthlyCharges', 'TotalCharges',
+#Index(['gender', 'SeniorCitizen', 'Partner', 'Dependents', 
+#      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
+#      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
+#       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
+#        'tenure_bin'],
+#      dtype='object')
+cat_val = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 
+      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
+      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
+       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
+        'tenure_bin']
+
+for var in cat_val:
+    cat_list='var'+'_'+var
+    cat_list = pd.get_dummies(data[var], prefix=var)
+    data1=data.join(cat_list)
+    data=data1
+cat_val=['gender', 'SeniorCitizen', 'Partner', 'Dependents', 
+      'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
+      'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
+       'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod',
+        'tenure_bin']
+data_vars=data.columns.values.tolist()
+to_keep=[i for i in data_vars if i not in cat_val]
+
+data_final=data[to_keep]
+data_final.columns.values
+
+# Separate the target value
+X = data_final.loc[:, data_final.columns != 'Churn']
+y = data_final.loc[:, data_final.columns == 'Churn']
+
+##### LOGISTIC REGRESSIONS
+features = X.columns.values
+scaler = MinMaxScaler(feature_range = (0,1))
+scaler.fit(X)
+X = pd.DataFrame(scaler.transform(X))
+X.columns = features
+
+# Create Train & Test Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
+y_train=y_train.astype('int')
+y_test=y_test.astype('int')
+
+###  MODELSSS
+
+# Running logistic regression model
+model = LogisticRegression()
+result = model.fit(X_train, y_train)
+
+prediction_test = model.predict(X_test)
+# Print the prediction accuracy
+print(metrics.accuracy_score(y_test, prediction_test))
+cm1 = confusion_matrix(y_test, prediction_test)
+print('Confusion Matrix : \n', cm1)
+
+def cm_ans(cm):
+    total1=sum(sum(cm))
+#####from confusion matrix calculate accuracy
+    accuracy1=(cm[0,0]+cm[1,1])/total1
+    print ('Accuracy : ', accuracy1)
+    sensitivity1 = cm[0,0]/(cm[0,0]+cm[0,1])
+    print('Sensitivity : ', sensitivity1 )
+    specificity1 = cm[1,1]/(cm[1,0]+cm[1,1])
+    print('Specificity : ', specificity1)
+    return total1
+
+cm_ans(cm1)
+
+# To get the weights of all the variables
+weights = pd.Series(model.coef_[0],
+                 index=X.columns.values)
+print(weights.sort_values(ascending = False)[:10].plot(kind='bar'))
+
+print(weights.sort_values(ascending = False)[-10:].plot(kind='bar'))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
