@@ -229,21 +229,75 @@ print(weights.sort_values(ascending = False)[:10].plot(kind='bar'))
 print(weights.sort_values(ascending = False)[-10:].plot(kind='bar'))
 
 
+#### RANDOM FOREST
+
+
+from sklearn.ensemble import RandomForestClassifier
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=101)
+model_rf = RandomForestClassifier(n_estimators=1000 , oob_score = True, n_jobs = -1,
+                                  random_state =50, max_features = "auto",
+                                  max_leaf_nodes = 30)
+y_train=y_train.astype('int')
+y_test=y_test.astype('int')
+model_rf.fit(X_train, y_train)
+
+# Make predictions
+prediction_test = model_rf.predict(X_test)
+print (metrics.accuracy_score(y_test, prediction_test))
+
+importances = model_rf.feature_importances_
+weights = pd.Series(importances,
+                 index=X.columns.values)
+weights.sort_values()[-10:].plot(kind = 'barh')
 
 
 
+## SVM
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=99)
+y_train=y_train.astype('int')
+y_test=y_test.astype('int')
+
+from sklearn.svm import SVC
+
+model.svm = SVC(kernel='linear') 
+model.svm.fit(X_train,y_train)
+preds = model.svm.predict(X_test)
+metrics.accuracy_score(y_test, preds)
+
+# Print the prediction accuracy
+print(metrics.accuracy_score(y_test, prediction_test))
+cm1 = confusion_matrix(y_test, prediction_test)
+print('Confusion Matrix : \n', cm1)
+
+def cm_ans(cm):
+    total1=sum(sum(cm))
+#####from confusion matrix calculate accuracy
+    accuracy1=(cm[0,0]+cm[1,1])/total1
+    print ('Accuracy : ', accuracy1)
+    sensitivity1 = cm[0,0]/(cm[0,0]+cm[0,1])
+    print('Sensitivity : ', sensitivity1 )
+    specificity1 = cm[1,1]/(cm[1,0]+cm[1,1])
+    print('Specificity : ', specificity1)
+    return total1
+
+cm_ans(cm1)
+
+
+# AdaBoost Algorithm
+from sklearn.ensemble import AdaBoostClassifier
+model = AdaBoostClassifier()
+# n_estimators = 50 (default value) 
+# base_estimator = DecisionTreeClassifier (default value)
+model.fit(X_train,y_train)
+preds = model.predict(X_test)
+metrics.accuracy_score(y_test, preds)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+### XGBOOST
+from xgboost import XGBClassifier
+model = XGBClassifier()
+model.fit(X_train, y_train)
+preds = model.predict(X_test)
+metrics.accuracy_score(y_test, preds)
