@@ -3,6 +3,7 @@
  
  I decided to go with Logistic Regression, after checking the confusion matrix. 
  It gave an accuracy of 80.23%, and my other models also gave similar accuracies. 
+
  Accuracy :  0.8023696682464455 
  Sensitivity :  0.9028938906752412 
  Specificity :  0.5207207207207207 
