@@ -5,7 +5,9 @@
  It gave an accuracy of 80.23%, and my other models also gave similar accuracies. 
 
  Accuracy :  0.8023696682464455 
+ 
  Sensitivity :  0.9028938906752412 
+ 
  Specificity :  0.5207207207207207 
  
 ● As we saw in our EDA, having a 2-year contract, DSL internet services,1, 2,3 Year tenure reduces chances of churn. 
